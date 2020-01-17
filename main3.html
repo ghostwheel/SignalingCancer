@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>3D simulation</title>
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+ <link rel="stylesheet" href="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.0/dist/bootstrap-toc.min.css">
+<script>
+! function ()
+{
+	var q = null;
+	window.PR_SHOULD_USE_CONTINUATION = !0;
+	(function ()
+	{
+		function R(a)
+		{
+			function d(e)
+			{
+				var b = e.charCodeAt(0);
+				if (b !== 92) return b;
+				var a = e.charAt(1);
+				return (b = r[a]) ? b : "0" <= a && a <= "7" ? parseInt(e.substring(1), 8) : a === "u" || a === "x" ? parseInt(e.substring(2), 16) : e.charCodeAt(1)
+			}
+
+			function g(e)
+			{
+				if (e < 32) return (e < 16 ? "\\x0" : "\\x") + e.toString(16);
+				e = String.fromCharCode(e);
+				return e === "\\" || e === "-" || e === "]" || e === "^" ? "\\" + e : e
+			}
+
+			function b(e)
+			{
+				var b = e.substring(1, e.length - 1).match(/\\u[\dA-Fa-f]{4}|\\x[\dA-Fa-f]{2}|\\[0-3][0-7]{0,2}|\\[0-7]{1,2}|\\[\S\s]|[^\\]/g),
+					e = [],
+					a =
+					b[0] === "^",
+					c = ["["];
+				a && c.push("^");
+				for (var a = a ? 1 : 0, f = b.length; a < f; ++a)
+				{
+					var h = b[a];
+					if (/\\[bdsw]/i.test(h)) c.push(h);
+					else
+					{
+						var h = d(h),
+							l;
+						a + 2 < f && "-" === b[a + 1] ? (l = d(b[a + 2]), a += 2) : l = h;
+						e.push([h, l]);
+						l < 65 || h > 122 || (l < 65 || h > 90 || e.push([Math.max(65, h) | 32, Math.min(l, 90) | 32]), l < 97 || h > 122 || e.push([Math.max(97, h) & -33, Math.min(l, 122) & -33]))
+					}
+				}
+				e.sort(function (e, a)
+				{
+					return e[0] - a[0] || a[1] - e[1]
+				});
+				b = [];
+				f = [];
+				for (a = 0; a < e.length; ++a) h = e[a], h[0] <= f[1] + 1 ? f[1] = Math.max(f[1], h[1]) : b.push(f = h);
+				for (a = 0; a < b.length; ++a) h = b[a], c.push(g(h[0])),
+					h[1] > h[0] && (h[1] + 1 > h[0] && c.push("-"), c.push(g(h[1])));
+				c.push("]");
+				return c.join("")
+			}
+
+			function s(e)
+			{
+				for (var a = e.source.match(/\[(?:[^\\\] ]|\\[\S\s])*]|\\u[\dA-Fa-f]{4}|\\x[\dA-Fa-f]{2}|\\\d+|\\[^\dux]|\(\?[!:=]|[()^]|[^()[\\^]+/g), c = a.length, d = [], f = 0, h = 0; f < c; ++f)
+				{
+					var l = a[f];
+					l === "(" ? ++h : "\\" === l.charAt(0) && (l = +l.substring(1)) && (l <= h ? d[l] = -1 : a[f] = g(l))
+				}
+				for (f = 1; f < d.length; ++f) - 1 === d[f] && (d[f] = ++x);
+				for (h = f = 0; f < c; ++f) l = a[f], l === "(" ? (++h, d[h] || (a[f] = "(?:")) : "\\" === l.charAt(0) && (l = +l.substring(1)) && l <= h &&
+					(a[f] = "\\" + d[l]);
+				for (f = 0; f < c; ++f) "^" === a[f] && "^" !== a[f + 1] && (a[f] = "");
+				if (e.ignoreCase && m)
+					for (f = 0; f < c; ++f) l = a[f], e = l.charAt(0), l.length >= 2 && e === "[" ? a[f] = b(l) : e !== "\\" && (a[f] = l.replace(/[A-Za-z]/g, function (a)
+					{
+						a = a.charCodeAt(0);
+						return "[" + String.fromCharCode(a & -33, a | 32) + "]"
+					}));
+				return a.join("")
+			}
+			for (var x = 0, m = !1, j = !1, k = 0, c = a.length; k < c; ++k)
+			{
+				var i = a[k];
+				if (i.ignoreCase) j = !0;
+				else if (/[a-z]/i.test(i.source.replace(/\\u[\da-f]{4}|\\x[\da-f]{2}|\\[^UXux]/gi, "")))
+				{
+					m = !0;
+					j = !1;
+					break
+				}
+			}
+			for (var r = {
+					b: 8,
+					t: 9,
+					n: 10,
+					v: 11,
+					f: 12,
+					r: 13
+				}, n = [], k = 0, c = a.length; k < c; ++k)
+			{
+				i = a[k];
+				if (i.global || i.multiline) throw Error("" + i);
+				n.push("(?:" + s(i) + ")")
+			}
+			return RegExp(n.join("|"), j ? "gi" : "g")
+		}
+
+		function S(a, d)
+		{
+			function g(a)
+			{
+				var c = a.nodeType;
+				if (c == 1)
+				{
+					if (!b.test(a.className))
+					{
+						for (c = a.firstChild; c; c = c.nextSibling) g(c);
+						c = a.nodeName.toLowerCase();
+						if ("br" === c || "li" === c) s[j] = "\n", m[j << 1] = x++, m[j++ << 1 | 1] = a
+					}
+				}
+				else if (c == 3 || c == 4) c = a.nodeValue, c.length && (c = d ? c.replace(/\r\n?/g, "\n") : c.replace(/[\t\n\r ]+/g, " "), s[j] = c, m[j << 1] = x, x += c.length, m[j++ << 1 | 1] =
+					a)
+			}
+			var b = /(?:^|\s)nocode(?:\s|$)/,
+				s = [],
+				x = 0,
+				m = [],
+				j = 0;
+			g(a);
+			return {
+				a: s.join("").replace(/\n$/, ""),
+				d: m
+			}
+		}
+
+		function H(a, d, g, b)
+		{
+			d && (a = {
+				a: d,
+				e: a
+			}, g(a), b.push.apply(b, a.g))
+		}
+
+		function T(a)
+		{
+			for (var d = void 0, g = a.firstChild; g; g = g.nextSibling) var b = g.nodeType,
+				d = b === 1 ? d ? a : g : b === 3 ? U.test(g.nodeValue) ? a : d : d;
+			return d === a ? void 0 : d
+		}
+
+		function D(a, d)
+		{
+			function g(a)
+			{
+				for (var j = a.e, k = [j, "pln"], c = 0, i = a.a.match(s) || [], r = {}, n = 0, e = i.length; n < e; ++n)
+				{
+					var z = i[n],
+						w = r[z],
+						t = void 0,
+						f;
+					if (typeof w === "string") f = !1;
+					else
+					{
+						var h = b[z.charAt(0)];
+						if (h) t = z.match(h[1]), w = h[0];
+						else
+						{
+							for (f = 0; f < x; ++f)
+								if (h = d[f], t = z.match(h[1]))
+								{
+									w = h[0];
+									break
+								}
+							t || (w = "pln")
+						}
+						if ((f = w.length >= 5 && "lang-" === w.substring(0, 5)) && !(t && typeof t[1] === "string")) f = !1, w = "src";
+						f || (r[z] = w)
+					}
+					h = c;
+					c += z.length;
+					if (f)
+					{
+						f = t[1];
+						var l = z.indexOf(f),
+							B = l + f.length;
+						t[2] && (B = z.length - t[2].length, l = B - f.length);
+						w = w.substring(5);
+						H(j + h, z.substring(0, l), g, k);
+						H(j + h + l, f, I(w, f), k);
+						H(j + h + B, z.substring(B), g, k)
+					}
+					else k.push(j + h, w)
+				}
+				a.g = k
+			}
+			var b = {},
+				s;
+			(function ()
+			{
+				for (var g = a.concat(d), j = [], k = {}, c = 0, i = g.length; c < i; ++c)
+				{
+					var r =
+						g[c],
+						n = r[3];
+					if (n)
+						for (var e = n.length; --e >= 0;) b[n.charAt(e)] = r;
+					r = r[1];
+					n = "" + r;
+					k.hasOwnProperty(n) || (j.push(r), k[n] = q)
+				}
+				j.push(/[\S\s]/);
+				s = R(j)
+			})();
+			var x = d.length;
+			return g
+		}
+
+		function v(a)
+		{
+			var d = [],
+				g = [];
+			a.tripleQuotedStrings ? d.push(["str", /^(?:'''(?:[^'\\]|\\[\S\s]|''?(?=[^']))*(?:'''|$)|"""(?:[^"\\]|\\[\S\s]|""?(?=[^"]))*(?:"""|$)|'(?:[^'\\]|\\[\S\s])*(?:'|$)|"(?:[^"\\]|\\[\S\s])*(?:"|$))/, q, "'\""]) : a.multiLineStrings ? d.push(["str", /^(?:'(?:[^'\\]|\\[\S\s])*(?:'|$)|"(?:[^"\\]|\\[\S\s])*(?:"|$)|`(?:[^\\`]|\\[\S\s])*(?:`|$))/,
+				q, "'\"`"
+			]) : d.push(["str", /^(?:'(?:[^\n\r'\\]|\\.)*(?:'|$)|"(?:[^\n\r"\\]|\\.)*(?:"|$))/, q, "\"'"]);
+			a.verbatimStrings && g.push(["str", /^@"(?:[^"]|"")*(?:"|$)/, q]);
+			var b = a.hashComments;
+			b && (a.cStyleComments ? (b > 1 ? d.push(["com", /^#(?:##(?:[^#]|#(?!##))*(?:###|$)|.*)/, q, "#"]) : d.push(["com", /^#(?:(?:define|e(?:l|nd)if|else|error|ifn?def|include|line|pragma|undef|warning)\b|[^\n\r]*)/, q, "#"]), g.push(["str", /^<(?:(?:(?:\.\.\/)*|\/?)(?:[\w-]+(?:\/[\w-]+)+)?[\w-]+\.h(?:h|pp|\+\+)?|[a-z]\w*)>/, q])) : d.push(["com",
+				/^#[^\n\r]*/, q, "#"
+			]));
+			a.cStyleComments && (g.push(["com", /^\/\/[^\n\r]*/, q]), g.push(["com", /^\/\*[\S\s]*?(?:\*\/|$)/, q]));
+			if (b = a.regexLiterals)
+			{
+				var s = (b = b > 1 ? "" : "\n\r") ? "." : "[\\S\\s]";
+				g.push(["lang-regex", RegExp("^(?:^^\\.?|[+-]|[!=]=?=?|\\#|%=?|&&?=?|\\(|\\*=?|[+\\-]=|->|\\/=?|::?|<<?=?|>>?>?=?|,|;|\\?|@|\\[|~|{|\\^\\^?=?|\\|\\|?=?|break|case|continue|delete|do|else|finally|instanceof|return|throw|try|typeof)\\s*(" + ("/(?=[^/*" + b + "])(?:[^/\\x5B\\x5C" + b + "]|\\x5C" + s + "|\\x5B(?:[^\\x5C\\x5D" + b + "]|\\x5C" +
+					s + ")*(?:\\x5D|$))+/") + ")")])
+			}(b = a.types) && g.push(["typ", b]);
+			b = ("" + a.keywords).replace(/^ | $/g, "");
+			b.length && g.push(["kwd", RegExp("^(?:" + b.replace(/[\s,]+/g, "|") + ")\\b"), q]);
+			d.push(["pln", /^\s+/, q, " \r\n\t "]);
+			b = "^.[^\\s\\w.$@'\"`/\\\\]*";
+			a.regexLiterals && (b += "(?!s*/)");
+			g.push(["lit", /^@[$_a-z][\w$@]*/i, q], ["typ", /^(?:[@_]?[A-Z]+[a-z][\w$@]*|\w+_t\b)/, q], ["pln", /^[$_a-z][\w$@]*/i, q], ["lit", /^(?:0x[\da-f]+|(?:\d(?:_\d+)*\d*(?:\.\d*)?|\.\d\+)(?:e[+-]?\d+)?)[a-z]*/i, q, "0123456789"], ["pln", /^\\[\S\s]?/,
+				q
+			], ["pun", RegExp(b), q]);
+			return D(d, g)
+		}
+
+		function J(a, d, g)
+		{
+			function b(a)
+			{
+				var c = a.nodeType;
+				if (c == 1 && !x.test(a.className))
+					if ("br" === a.nodeName) s(a), a.parentNode && a.parentNode.removeChild(a);
+					else
+						for (a = a.firstChild; a; a = a.nextSibling) b(a);
+				else if ((c == 3 || c == 4) && g)
+				{
+					var d = a.nodeValue,
+						i = d.match(m);
+					if (i) c = d.substring(0, i.index), a.nodeValue = c, (d = d.substring(i.index + i[0].length)) && a.parentNode.insertBefore(j.createTextNode(d), a.nextSibling), s(a), c || a.parentNode.removeChild(a)
+				}
+			}
+
+			function s(a)
+			{
+				function b(a, c)
+				{
+					var d =
+						c ? a.cloneNode(!1) : a,
+						e = a.parentNode;
+					if (e)
+					{
+						var e = b(e, 1),
+							g = a.nextSibling;
+						e.appendChild(d);
+						for (var i = g; i; i = g) g = i.nextSibling, e.appendChild(i)
+					}
+					return d
+				}
+				for (; !a.nextSibling;)
+					if (a = a.parentNode, !a) return;
+				for (var a = b(a.nextSibling, 0), d;
+					(d = a.parentNode) && d.nodeType === 1;) a = d;
+				c.push(a)
+			}
+			for (var x = /(?:^|\s)nocode(?:\s|$)/, m = /\r\n?|\n/, j = a.ownerDocument, k = j.createElement("li"); a.firstChild;) k.appendChild(a.firstChild);
+			for (var c = [k], i = 0; i < c.length; ++i) b(c[i]);
+			d === (d | 0) && c[0].setAttribute("value", d);
+			var r = j.createElement("ol");
+			r.className = "linenums";
+			for (var d = Math.max(0, d - 1 | 0) || 0, i = 0, n = c.length; i < n; ++i) k = c[i], k.className = "L" + (i + d) % 10, k.firstChild || k.appendChild(j.createTextNode(" ")), r.appendChild(k);
+			a.appendChild(r)
+		}
+
+		function p(a, d)
+		{
+			for (var g = d.length; --g >= 0;)
+			{
+				var b = d[g];
+				F.hasOwnProperty(b) ? E.console && console.warn("cannot override language handler %s", b) : F[b] = a
+			}
+		}
+
+		function I(a, d)
+		{
+			if (!a || !F.hasOwnProperty(a)) a = /^\s*</.test(d) ? "default-markup" : "default-code";
+			return F[a]
+		}
+
+		function K(a)
+		{
+			var d = a.h;
+			try
+			{
+				var g = S(a.c, a.i),
+					b = g.a;
+				a.a = b;
+				a.d = g.d;
+				a.e = 0;
+				I(d, b)(a);
+				var s = /\bMSIE\s(\d+)/.exec(navigator.userAgent),
+					s = s && +s[1] <= 8,
+					d = /\n/g,
+					x = a.a,
+					m = x.length,
+					g = 0,
+					j = a.d,
+					k = j.length,
+					b = 0,
+					c = a.g,
+					i = c.length,
+					r = 0;
+				c[i] = m;
+				var n, e;
+				for (e = n = 0; e < i;) c[e] !== c[e + 2] ? (c[n++] = c[e++], c[n++] = c[e++]) : e += 2;
+				i = n;
+				for (e = n = 0; e < i;)
+				{
+					for (var p = c[e], w = c[e + 1], t = e + 2; t + 2 <= i && c[t + 1] === w;) t += 2;
+					c[n++] = p;
+					c[n++] = w;
+					e = t
+				}
+				c.length = n;
+				var f = a.c,
+					h;
+				if (f) h = f.style.display, f.style.display = "none";
+				try
+				{
+					for (; b < k;)
+					{
+						var l = j[b + 2] || m,
+							B = c[r + 2] || m,
+							t = Math.min(l, B),
+							A = j[b + 1],
+							G;
+						if (A.nodeType !== 1 && (G = x.substring(g,
+								t)))
+						{
+							s && (G = G.replace(d, "\r"));
+							A.nodeValue = G;
+							var L = A.ownerDocument,
+								o = L.createElement("span");
+							o.className = c[r + 1];
+							var v = A.parentNode;
+							v.replaceChild(o, A);
+							o.appendChild(A);
+							g < l && (j[b + 1] = A = L.createTextNode(x.substring(t, l)), v.insertBefore(A, o.nextSibling))
+						}
+						g = t;
+						g >= l && (b += 2);
+						g >= B && (r += 2)
+					}
+				}
+				finally
+				{
+					if (f) f.style.display = h
+				}
+			}
+			catch (u)
+			{
+				E.console && console.log(u && u.stack || u)
+			}
+		}
+		var E = window,
+			y = ["break,continue,do,else,for,if,return,while"],
+			C = [
+				[y, "auto,case,char,const,default,double,enum,extern,float,goto,inline,int,long,register,short,signed,sizeof,static,struct,switch,typedef,union,unsigned,void,volatile"],
+				"catch,class,delete,false,import,new,operator,private,protected,public,this,throw,true,try,typeof"
+			],
+			M = [C, "alignof,align_union,asm,axiom,bool,concept,concept_map,const_cast,constexpr,decltype,delegate,dynamic_cast,explicit,export,friend,generic,late_check,mutable,namespace,nullptr,property,reinterpret_cast,static_assert,static_cast,template,typeid,typename,using,virtual,where"],
+			V = [C, "abstract,assert,boolean,byte,extends,final,finally,implements,import,instanceof,interface,null,native,package,strictfp,super,synchronized,throws,transient"],
+			N = [C, "abstract,as,base,bool,by,byte,checked,decimal,delegate,descending,dynamic,event,finally,fixed,foreach,from,group,implicit,in,interface,internal,into,is,let,lock,null,object,out,override,orderby,params,partial,readonly,ref,sbyte,sealed,stackalloc,string,select,uint,ulong,unchecked,unsafe,ushort,var,virtual,where"],
+			C = [C, "debugger,eval,export,function,get,null,set,undefined,var,with,Infinity,NaN"],
+			O = [y, "and,as,assert,class,def,del,elif,except,exec,finally,from,global,import,in,is,lambda,nonlocal,not,or,pass,print,raise,try,with,yield,False,True,None"],
+			P = [y, "alias,and,begin,case,class,def,defined,elsif,end,ensure,false,in,module,next,nil,not,or,redo,rescue,retry,self,super,then,true,undef,unless,until,when,yield,BEGIN,END"],
+			W = [y, "as,assert,const,copy,drop,enum,extern,fail,false,fn,impl,let,log,loop,match,mod,move,mut,priv,pub,pure,ref,self,static,struct,true,trait,type,unsafe,use"],
+			y = [y, "case,done,elif,esac,eval,fi,function,in,local,set,then,until"],
+			Q = /^(DIR|FILE|vector|(de|priority_)?queue|list|stack|(const_)?iterator|(multi)?(set|map)|bitset|u?(int|float)\d*)\b/,
+			U = /\S/,
+			X = v(
+			{
+				keywords: [M, N, C, "caller,delete,die,do,dump,elsif,eval,exit,foreach,for,goto,if,import,last,local,my,next,no,our,print,package,redo,require,sub,undef,unless,until,use,wantarray,while,BEGIN,END", O, P, y],
+				hashComments: !0,
+				cStyleComments: !0,
+				multiLineStrings: !0,
+				regexLiterals: !0
+			}),
+			F = {};
+		p(X, ["default-code"]);
+		p(D([], [
+			["pln", /^[^<?]+/],
+			["dec", /^<!\w[^>]*(?:>|$)/],
+			["com", /^<\!--[\S\s]*?(?:--\>|$)/],
+			["lang-", /^<\?([\S\s]+?)(?:\?>|$)/],
+			["lang-", /^<%([\S\s]+?)(?:%>|$)/],
+			["pun", /^(?:<[%?]|[%?]>)/],
+			["lang-",
+				/^<xmp\b[^>]*>([\S\s]+?)<\/xmp\b[^>]*>/i
+			],
+			["lang-js", /^<script\b[^>]*>([\S\s]*?)(<\/script\b[^>]*>)/i],
+			["lang-css", /^<style\b[^>]*>([\S\s]*?)(<\/style\b[^>]*>)/i],
+			["lang-in.tag", /^(<\/?[a-z][^<>]*>)/i]
+		]), ["default-markup", "htm", "html", "mxml", "xhtml", "xml", "xsl"]);
+		p(D([
+			["pln", /^\s+/, q, " \t\r\n"],
+			["atv", /^(?:"[^"]*"?|'[^']*'?)/, q, "\"'"]
+		], [
+			["tag", /^^<\/?[a-z](?:[\w-.:]*\w)?|\/?>$/i],
+			["atn", /^(?!style[\s=]|on)[a-z](?:[\w:-]*\w)?/i],
+			["lang-uq.val", /^=\s*([^\s"'>]*(?:[^\s"'/>]|\/(?=\s)))/],
+			["pun", /^[/<->]+/],
+			["lang-js", /^on\w+\s*=\s*"([^"]+)"/i],
+			["lang-js", /^on\w+\s*=\s*'([^']+)'/i],
+			["lang-js", /^on\w+\s*=\s*([^\s"'>]+)/i],
+			["lang-css", /^style\s*=\s*"([^"]+)"/i],
+			["lang-css", /^style\s*=\s*'([^']+)'/i],
+			["lang-css", /^style\s*=\s*([^\s"'>]+)/i]
+		]), ["in.tag"]);
+		p(D([], [
+			["atv", /^[\S\s]+/]
+		]), ["uq.val"]);
+		p(v(
+		{
+			keywords: M,
+			hashComments: !0,
+			cStyleComments: !0,
+			types: Q
+		}), ["c", "cc", "cpp", "cxx", "cyc", "m"]);
+		p(v(
+		{
+			keywords: "null,true,false"
+		}), ["json"]);
+		p(v(
+		{
+			keywords: N,
+			hashComments: !0,
+			cStyleComments: !0,
+			verbatimStrings: !0,
+			types: Q
+		}), ["cs"]);
+		p(v(
+		{
+			keywords: V,
+			cStyleComments: !0
+		}), ["java"]);
+		p(v(
+		{
+			keywords: y,
+			hashComments: !0,
+			multiLineStrings: !0
+		}), ["bash", "bsh", "csh", "sh"]);
+		p(v(
+		{
+			keywords: O,
+			hashComments: !0,
+			multiLineStrings: !0,
+			tripleQuotedStrings: !0
+		}), ["cv", "py", "python"]);
+		p(v(
+		{
+			keywords: "caller,delete,die,do,dump,elsif,eval,exit,foreach,for,goto,if,import,last,local,my,next,no,our,print,package,redo,require,sub,undef,unless,until,use,wantarray,while,BEGIN,END",
+			hashComments: !0,
+			multiLineStrings: !0,
+			regexLiterals: 2
+		}), ["perl", "pl", "pm"]);
+		p(v(
+		{
+			keywords: P,
+			hashComments: !0,
+			multiLineStrings: !0,
+			regexLiterals: !0
+		}), ["rb", "ruby"]);
+		p(v(
+		{
+			keywords: C,
+			cStyleComments: !0,
+			regexLiterals: !0
+		}), ["javascript", "js"]);
+		p(v(
+		{
+			keywords: "all,and,by,catch,class,else,extends,false,finally,for,if,in,is,isnt,loop,new,no,not,null,of,off,on,or,return,super,then,throw,true,try,unless,until,when,while,yes",
+			hashComments: 3,
+			cStyleComments: !0,
+			multilineStrings: !0,
+			tripleQuotedStrings: !0,
+			regexLiterals: !0
+		}), ["coffee"]);
+		p(v(
+		{
+			keywords: W,
+			cStyleComments: !0,
+			multilineStrings: !0
+		}), ["rc", "rs", "rust"]);
+		p(D([], [
+			["str", /^[\S\s]+/]
+		]), ["regex"]);
+		var Y = E.PR = {
+			createSimpleLexer: D,
+			registerLangHandler: p,
+			sourceDecorator: v,
+			PR_ATTRIB_NAME: "atn",
+			PR_ATTRIB_VALUE: "atv",
+			PR_COMMENT: "com",
+			PR_DECLARATION: "dec",
+			PR_KEYWORD: "kwd",
+			PR_LITERAL: "lit",
+			PR_NOCODE: "nocode",
+			PR_PLAIN: "pln",
+			PR_PUNCTUATION: "pun",
+			PR_SOURCE: "src",
+			PR_STRING: "str",
+			PR_TAG: "tag",
+			PR_TYPE: "typ",
+			prettyPrintOne: E.prettyPrintOne = function (a, d, g)
+			{
+				var b = document.createElement("div");
+				b.innerHTML = "<pre>" + a + "</pre>";
+				b = b.firstChild;
+				g && J(b, g, !0);
+				K(
+				{
+					h: d,
+					j: g,
+					c: b,
+					i: 1
+				});
+				return b.innerHTML
+			},
+			prettyPrint: E.prettyPrint = function (a, d)
+			{
+				function g()
+				{
+					for (var b = E.PR_SHOULD_USE_CONTINUATION ? c.now() + 250 : Infinity; i < p.length && c.now() < b; i++)
+					{
+						for (var d = p[i], j = h, k = d; k = k.previousSibling;)
+						{
+							var m = k.nodeType,
+								o = (m === 7 || m === 8) && k.nodeValue;
+							if (o ? !/^\??prettify\b/.test(o) : m !== 3 || /\S/.test(k.nodeValue)) break;
+							if (o)
+							{
+								j = {};
+								o.replace(/\b(\w+)=([\w%+\-.:]+)/g, function (a, b, c)
+								{
+									j[b] = c
+								});
+								break
+							}
+						}
+						k = d.className;
+						if ((j !== h || e.test(k)) && !v.test(k))
+						{
+							m = !1;
+							for (o = d.parentNode; o; o = o.parentNode)
+								if (f.test(o.tagName) &&
+									o.className && e.test(o.className))
+								{
+									m = !0;
+									break
+								}
+							if (!m)
+							{
+								d.className += " prettyprinted";
+								m = j.lang;
+								if (!m)
+								{
+									var m = k.match(n),
+										y;
+									if (!m && (y = T(d)) && t.test(y.tagName)) m = y.className.match(n);
+									m && (m = m[1])
+								}
+								if (w.test(d.tagName)) o = 1;
+								else var o = d.currentStyle,
+									u = s.defaultView,
+									o = (o = o ? o.whiteSpace : u && u.getComputedStyle ? u.getComputedStyle(d, q).getPropertyValue("white-space") : 0) && "pre" === o.substring(0, 3);
+								u = j.linenums;
+								if (!(u = u === "true" || +u)) u = (u = k.match(/\blinenums\b(?::(\d+))?/)) ? u[1] && u[1].length ? +u[1] : !0 : !1;
+								u && J(d, u, o);
+								r = {
+									h: m,
+									c: d,
+									j: u,
+									i: o
+								};
+								K(r)
+							}
+						}
+					}
+					i < p.length ? setTimeout(g, 250) : "function" === typeof a && a()
+				}
+				for (var b = d || document.body, s = b.ownerDocument || document, b = [b.getElementsByTagName("pre"), b.getElementsByTagName("code"), b.getElementsByTagName("xmp")], p = [], m = 0; m < b.length; ++m)
+					for (var j = 0, k = b[m].length; j < k; ++j)
+						p.push(b[m][j]);
+				var b = q,
+					c = Date;
+				c.now || (c = {
+					now: function ()
+					{
+						return +new Date
+					}
+				});
+				var i = 0,
+					r, n = /\blang(?:uage)?-([\w.]+)(?!\S)/,
+					e = /\bprettyprint\b/,
+					v = /\bprettyprinted\b/,
+					w = /pre|xmp/i,
+					t = /^code$/i,
+					f = /^(?:pre|code|xmp)$/i,
+					h = {};
+				g()
+			}
+		};
+		typeof define === "function" && define.amd && define("google-code-prettify", [], function ()
+		{
+			return Y
+		})
+	})();
+}()
+</script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.0/dist/bootstrap-toc.min.js"></script>
+<style>
+.pln{color:#1b181b}
+.str{color:#918b3b}
+.kwd{color:#7b59c0}
+.com{color:#9e8f9e}
+.typ{color:#516aec}
+.lit{color:#a65926}
+.clo,
+.opn,
+.pun{color:#1b181b}
+.tag{color:#ca402b}
+.atn{color:#a65926}
+.atv{color:#159393}
+.dec{color:#a65926}
+.var{color:#ca402b}
+.fun{color:#516aec}
+pre.prettyprint
+{
+	background:#f7f3f7;
+	color:#ab9bab;
+	font-family:Menlo,Consolas,"Bitstream Vera Sans Mono","DejaVu Sans Mono",Monaco,monospace;
+	font-size:12px;
+	line-height:1.5;
+	border:1px solid #d8cad8;
+	padding:10px
+}
+ol.linenums{margin-top:0;margin-bottom:0}
+html {
+ 	font-family:"Avenir", "Helvetica neue", sans-serif;
+}
+
+body {
+  background: #ffffff;
+  color: #555;
+}
+
+#title {
+	font-size: 40px;
+}
+
+h1, body, title {
+    color: rgb(100, 100, 100);
+    font-weight: normal;
+}
+
+h2 {
+  font-weight: normal;
+}
+
+h3 {
+  font-weight: normal;
+}
+
+h4 {
+  font-weight: normal;
+}
+
+h5 {
+  font-weight: normal;
+}
+
+h6 {
+  font-weight: normal;
+}
+
+p, li, dd, dt, th, td {
+	font-size: 12px;
+}
+
+p {
+	padding-bottom: 10px;
+}
+
+pre {
+	padding-top: 0px;
+	margin-top: 0px;
+}
+
+p:not(.notp){
+	text-indent: 0em;
+}
+
+a:link {
+    color: rgb(22, 123, 204);
+}
+
+/* visited link */
+a:visited {
+    color: rgb(22, 123, 204);
+}
+
+/* mouse over link */
+a:hover {
+    color: rgb(22, 123, 204);
+}
+
+/* selected link */
+a:active {
+    color: rgb(22, 123, 204);
+}
+
+th, td {
+    padding-right: 10px;
+    padding-bottom: 5px;
+    vertical-align: top;
+}
+
+</style>
+</head>
+<body onload="prettyPrint()"  data-spy="scroll" data-target="#toc">
+<div class="row">
+<div class="col-sm-3">
+<nav id="toc" data-spy="affix" data-toggle="toc" class="sticky-top"></nav>
+</div>
+<div class="col-sm-9">
+<p id="title">3D simulation</p><a name="1:1"><div class="section"><h1>1. Introduction</h1></a>
+<p>The program simulates a compartment with possible cancer cells by
+iterating steps of the Moran process. Each run starts from a
+single mutation till fixation.
+One modification to the regular Moran is that cells to replace are chosen so that 
+the lump of mutants stays compact.
+</p>
+
+</div>
+<a name="1:2"><div class="section"><h1>2. Main program</h1></a>
+</div>
+<a name="1:2.1"><div class="section"><h2>2.1. The Moran process</h2></a>
+<p>Let us start with an overview of the implementation of the Moran Process.
+</p>
+<p>In each single run first initialise the full compartment, stored in
+<code>MatrixState</code> of size <code>iSize*jSize*kSize</code>, to type 0, and set one single cell (the middle one) to type 1.
+</p>
+
+</div>
+<a name="1:2.1.1"><div class="section"><h3>2.1.1. initialise compartment and introduce single mutant</h3></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{initialise compartment and introduce single mutant <a href="main3.html#1:2.1.1">2.1.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+bool MatrixState [ iSize   ][ jSize   ][ kSize  ] = {{{ 0 }}} ;
+MatrixState [ iSize/2 ][ jSize/2 ][ kSize/2]   =   1   ;   // Mutant
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:2.1.3">2.1.3</a></p>
+</div>
+</div>
+<a name="1:2.1.2"><div class="section"><h3>2.1.2. Single moran step</h3></a>
+<p>Then at each Moran step choose a cell to replicate, the <em>reproducer</em>,
+and a cell that will be replaced.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{Single moran step <a href="main3.html#1:2.1.2">2.1.2</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+<span class="nocode pln">{Choose *reproducer* according to fitness, <a href="main3.html#1:6.1">6.1</a>}</span>
+<span class="nocode pln">{Choose random cell within range L *to be replaced*, <a href="main3.html#1:6.2">6.2</a>}</span>
+<span class="nocode pln">{Find cell of the same type as *to be replaced*, having maximum neigbours of same type as the *reproducer*, and replace it instead, <a href="main3.html#1:6.3">6.3</a>}</span>
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:2.1.3">2.1.3</a></p>
+</div>
+<p>Note that finding the cell to be replaced has two stops: first chose
+one in radius L, then chose an identical one anywhere that has a
+maximal number of neighbours of the same type as the reproducer.
+</p>
+
+</div>
+<a name="1:2.1.3"><div class="section"><h3>2.1.3. main loop single run</h3></a>
+<p>This is done till the mutant either is extinct, or takes up the whole space.
+<code>call_count</code> records how long this took.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{main loop single run <a href="main3.html#1:2.1.3">2.1.3</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+<span class="nocode pln">  {initialise compartment and introduce single mutant, <a href="main3.html#1:2.1.1">2.1.1</a>}</span>
+  static unsigned int call_count = 0;
+  do {
+<span class="nocode pln">    {Single moran step, <a href="main3.html#1:2.1.2">2.1.2</a>}</span>
+    call_count++ ;
+  } while( SumArr3(MatrixState, iSize, jSize, kSize) != 0     &amp;&amp; 
+           SumArr3(MatrixState, iSize, jSize, kSize) != PopSize    );
+         // Notice that here SumArr3 is called twice. Also, in a single step, only one replacement takes
+         // place, and yet the 6x6x6 sum is calculated again (twice)
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:3.1">3.1</a></p>
+</div>
+</div>
+<a name="1:2.1.3.1"><div class="section"><h4>2.1.3.1. definition of PopSize</h4></a>
+<p>Notice that <code>PopSize</code> is set to the size of the array
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{definition of PopSize <a href="main3.html#1:2.1.3.1">2.1.3.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+const int PopSize = iSize*jSize*kSize;
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:4">4</a></p>
+</div>
+</div>
+<a name="1:2.2"><div class="section"><h2>2.2. Main program for 3D run</h2></a>
+<p>The program has a very simple structure, of a main loop,
+with inits and printing results.
+</p>
+
+</div>
+<a name="1:2.2.1"><div class="section"><h3>2.2.1. main3.cpp</h3></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{<strong>main3.cpp</strong> <a href="main3.html#1:2.2.1">2.2.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+//
+//  main.cpp
+//  Cancer3D
+//
+//  Created by Leonardo Ona Bubach on 04/11/2015.
+//  Copyright © 2015 Leonardo Ona Bubach. All rights reserved.
+//
+
+<span class="nocode pln">{includes, <a href="main3.html#1:3">3</a>}</span>
+<span class="nocode pln">{Parameters, <a href="main3.html#1:4">4</a>}</span>
+<span class="nocode pln">{Functions, <a href="main3.html#1:5">5</a>}</span>
+int main() {
+   ofstream outputfile ("output.csv");
+   
+<span class="nocode pln">   {main program inits, <a href="main3.html#1:5.1.1">5.1.1</a>}</span>
+   
+<span class="nocode pln">   {main loop stats init, <a href="main3.html#1:3.2.2">3.2.2</a>}</span>
+  
+<span class="nocode pln">   {main loop, <a href="main3.html#1:3.1">3.1</a>}</span>
+
+   outputfile.close();
+    
+   return 0;
+}
+</pre>
+
+
+
+</div>
+</div>
+<a name="1:3"><div class="section"><h1>3. includes</h1></a>
+<p>We will gather includes as we need them over the program.
+<code>&lt;fstream&gt;</code> is needed for <code>ofstream</code>.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{includes <a href="main3.html#1:3">3</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+#include &lt;fstream&gt;
+</pre>
+<p class="seealso">Added to in sections <a href="main3.html#1:3.2.4.0.1">3.2.4.0.1</a>, <a href="main3.html#1:5.0.1.0.1">5.0.1.0.1</a>, <a href="main3.html#1:6.1.1.9.4">6.1.1.9.4</a>, <a href="main3.html#1:6.3.1.1.1">6.3.1.1.1</a>, <a href="main3.html#1:6.3.1.2.1">6.3.1.2.1</a> and <a href="main3.html#1:6.3.1.4.1">6.3.1.4.1</a></p>
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+</div>
+<a name="1:3.1"><div class="section"><h2>3.1. main loop</h2></a>
+<p>The main loop runs across different parameters. In the current
+incarnation, it runs across parameter <code>R</code>, and for each value of <code>R</code>
+runs <code>nRuns</code> runs.
+The arrays <code>whoWon[]</code> and <code>fixTime[]</code> will collect results on each single run.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{main loop <a href="main3.html#1:3.1">3.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+for (int R=Rmin; R &lt;= Rmax ; R=R+Rstep) {
+
+  int whoWon[nRuns]={0};
+  int fixTime[nRuns]={0};
+        
+  for (int i=0; i&lt;nRuns; i++){
+<span class="nocode pln">    {main loop single run, <a href="main3.html#1:2.1.3">2.1.3</a>}</span>
+<span class="nocode pln">    {record who won and fixation time, <a href="main3.html#1:3.2.1">3.2.1</a>}</span>
+  }
+  
+<span class="nocode pln">   {collect stats and print results, <a href="main3.html#1:3.2.3">3.2.3</a>}</span>
+}  
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+</div>
+<a name="1:3.2"><div class="section"><h2>3.2. Stats and printout</h2></a>
+</div>
+<a name="1:3.2.1"><div class="section"><h3>3.2.1. record who won and fixation time</h3></a>
+<p>After the run record who fixed by sampling a single cell,
+and record time to fixation from <code>call_count</code>.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{record who won and fixation time <a href="main3.html#1:3.2.1">3.2.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+whoWon[i]  = MatrixState[1][1][1];
+fixTime[i] = call_count;
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:3.1">3.1</a></p>
+</div>
+<p>During the actual main loop, <code>whoWon</code> and <code>fixTime</code> recorded results.
+These are converted to the statistics we actually want to print out.
+These are the fixation probability, and average time to fixation,
+conditional on fixation.
+</p>
+
+</div>
+<a name="1:3.2.2"><div class="section"><h3>3.2.2. main loop stats init</h3></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{main loop stats init <a href="main3.html#1:3.2.2">3.2.2</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+double fixProbR[ nR ] ={ 0.0 };
+double avFixTimeR[ nR ]={ 0.0 };
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+<p>We loop over all runs, and for cases in which the mutant fixed, record
+time to fixation in <code>OnlyCasesOneFixTime[]</code>. All other entries stay 0.
+<code>Counter1</code> records how often this happened.
+</p>
+
+</div>
+<a name="1:3.2.3"><div class="section"><h3>3.2.3. collect stats and print results</h3></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{collect stats and print results <a href="main3.html#1:3.2.3">3.2.3</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+//****The following vector save cases where 1 reach fixation*****
+        
+int OnlyCasesOneFixTime[nRuns]={0};
+
+int Counter1=0;
+
+for (int i=0; i&lt;nRuns; i++) {
+  if(whoWon[i]==1){ // mutant fixed
+    Counter1++;
+    OnlyCasesOneFixTime[i]=fixTime[i];
+  }
+ } // End of the For loop for Runs values
+//****************************************************************
+</pre>
+<p class="seealso">Added to in section <a href="main3.html#1:3.2.4">3.2.4</a></p>
+
+<p class="seealso">Used in section <a href="main3.html#1:3.1">3.1</a></p>
+</div>
+<p>Now we just need 
+</p>
+
+</div>
+<a name="1:3.2.4"><div class="section"><h3>3.2.4. collect stats and print results +=</h3></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{collect stats and print results <a href="main3.html#1:3.2.3">3.2.3</a>} +=</span>
+<pre class="prettyprint lang-Dockerfile">
+
+fixProbR[   (R-Rmin) / Rstep ]= (double(Sum( whoWon,              nRuns))/nRuns);
+avFixTimeR[ (R-Rmin) / Rstep ]= (double(Sum( OnlyCasesOneFixTime, nRuns))/Counter1)/PopSize;
+
+
+cout &lt;&lt; endl;
+cout &lt;&lt; endl;
+
+
+cout &lt;&lt; "Radius:"&lt;&lt; endl;
+for (int i= Rmin; i &lt;= Rmax; i= i+Rstep) {
+  cout &lt;&lt; i &lt;&lt; " ";
+}
+
+cout &lt;&lt; endl;
+cout &lt;&lt; endl;
+
+
+
+cout &lt;&lt; "Fix Prob dep R:"&lt;&lt; endl;
+for (int i=0; i&lt;=(Rmax-Rmin)/Rstep; i++) {
+  cout &lt;&lt; fixProbR[i] &lt;&lt; " ";
+ }
+
+cout &lt;&lt; endl;
+cout &lt;&lt; endl;
+
+cout &lt;&lt; "Av Fix Time dep R:"&lt;&lt; endl;
+for (int i=0; i&lt;=(Rmax-Rmin)/Rstep; i++) {
+  cout &lt;&lt; avFixTimeR[i] &lt;&lt; " ";
+}
+
+
+
+cout &lt;&lt; endl;
+cout &lt;&lt; endl;
+cout &lt;&lt; endl;
+
+
+
+for (int i=0; i&lt;=(Rmax-Rmin)/Rstep; i++)  {
+  outputfile &lt;&lt; i &lt;&lt; "," &lt;&lt; fixProbR[i] &lt;&lt; "," &lt;&lt; avFixTimeR[i] &lt;&lt; endl;
+}
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:3.1">3.1</a></p>
+</div>
+</div>
+<a name="1:3.2.4.0.1"><div class="section"><h5>3.2.4.0.1. includes +=</h5></a>
+<p>Using <code>cout</code> means we need 
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{includes <a href="main3.html#1:3">3</a>} +=</span>
+<pre class="prettyprint lang-Dockerfile">
+#include &lt;iostream&gt;
+</pre>
+<p class="seealso">Added to in sections <a href="main3.html#1:5.0.1.0.1">5.0.1.0.1</a>, <a href="main3.html#1:6.1.1.9.4">6.1.1.9.4</a>, <a href="main3.html#1:6.3.1.1.1">6.3.1.1.1</a>, <a href="main3.html#1:6.3.1.2.1">6.3.1.2.1</a> and <a href="main3.html#1:6.3.1.4.1">6.3.1.4.1</a></p>
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+</div>
+<a name="1:4"><div class="section"><h1>4. Parameters</h1></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{Parameters <a href="main3.html#1:4">4</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+using namespace std ;
+//PARAMETERS
+
+#define CUMULATIVE
+
+const double b=1.0;                         // Benefit
+const double c=0.01;                        // Cost
+//const int R=30;                           // Radius
+const int Rmin=0;                           // Min Radius in a loop
+const int Rmax=3;                           // Max Radius in a loop
+const int Rstep=1;                          // R step in a loop
+const int nR= ((Rmax-Rmin)/Rstep)+1;        // Number of data per Radius
+const int L=1;                              // Range of local competition L
+
+const int iSize = 6;
+const int jSize = 6;
+const int kSize = 6;
+
+<span class="nocode pln">{definition of PopSize, <a href="main3.html#1:2.1.3.1">2.1.3.1</a>}</span>
+
+const int nRuns=100;                        // Number of runs
+
+
+int MapVM[iSize][jSize][kSize]= {{{ 0 }}} ;
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+</div>
+<a name="1:5"><div class="section"><h1>5. Functions</h1></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{Functions <a href="main3.html#1:5">5</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+<span class="nocode pln">{IntegerRandom, <a href="main3.html#1:5.0.1">5.0.1</a>}</span>
+<span class="nocode pln">{Sum, <a href="main3.html#1:5.0.2">5.0.2</a>}</span>
+<span class="nocode pln">{SumArr3, <a href="main3.html#1:5.0.3">5.0.3</a>}</span>
+<span class="nocode pln">{WithinCompartment, <a href="main3.html#1:5.0.4">5.0.4</a>}</span>
+<span class="nocode pln">{MatMappingInitialization, <a href="main3.html#1:5.1.1.1">5.1.1.1</a>}</span>
+<span class="nocode pln">{MatToVet, <a href="main3.html#1:5.1.1.2">5.1.1.2</a>}</span>
+<span class="nocode pln">{VetToMat, <a href="main3.html#1:5.1.2">5.1.2</a>}</span>
+<span class="nocode pln">{ChooseAnElement, <a href="main3.html#1:6.1.1">6.1.1</a>}</span>
+<span class="nocode pln">{NeighbourWithinL, <a href="main3.html#1:6.2.1">6.2.1</a>}</span>
+<span class="nocode pln">{Replacement, <a href="main3.html#1:6.3.1">6.3.1</a>}</span>
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+</div>
+<a name="1:5.0.1"><div class="section"><h3>5.0.1. IntegerRandom</h3></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{IntegerRandom <a href="main3.html#1:5.0.1">5.0.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+//The function "IntegerRandom" returns a random integer from min (inclusive) to max (exclusive): [min,max). When called with one argument gives [0,max)
+int IntegerRandom(const int max, const int min=0)
+{
+  return static_cast&lt;int&gt;( rnd::uniform()*(max-min)+min );
+}
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:5">5</a></p>
+</div>
+<p><code>rnd</code> is defined in <code>random.h</code>
+</p>
+
+</div>
+<a name="1:5.0.1.0.1"><div class="section"><h5>5.0.1.0.1. includes +=</h5></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{includes <a href="main3.html#1:3">3</a>} +=</span>
+<pre class="prettyprint lang-Dockerfile">
+#include "random.h" // for rnd::uniform()
+</pre>
+<p class="seealso">Added to in sections <a href="main3.html#1:3.2.4.0.1">3.2.4.0.1</a>, <a href="main3.html#1:6.1.1.9.4">6.1.1.9.4</a>, <a href="main3.html#1:6.3.1.1.1">6.3.1.1.1</a>, <a href="main3.html#1:6.3.1.2.1">6.3.1.2.1</a> and <a href="main3.html#1:6.3.1.4.1">6.3.1.4.1</a></p>
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+</div>
+<a name="1:5.0.2"><div class="section"><h3>5.0.2. Sum</h3></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{Sum <a href="main3.html#1:5.0.2">5.0.2</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+int Sum(const int *pnArray, const int nLength)
+{
+    int val =0;
+    for ( int i=0; i&lt;nLength; i++)
+        val += pnArray[i];
+    return val;
+}
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:5">5</a></p>
+</div>
+</div>
+<a name="1:5.0.3"><div class="section"><h3>5.0.3. SumArr3</h3></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{SumArr3 <a href="main3.html#1:5.0.3">5.0.3</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+int SumArr3(const bool pnArray[][jSize][kSize], const int nLength, const int mLength, const int lLength)
+{
+    int val =0;
+    for (int i=0; i&lt;nLength; i++){
+        for (int j=0; j&lt;mLength; j++) {
+            for (int k=0; k&lt;lLength; k++) {
+                val += pnArray[i][j][k];
+            }
+        }
+    }
+    return val;
+}
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:5">5</a></p>
+</div>
+</div>
+<a name="1:5.0.4"><div class="section"><h3>5.0.4. WithinCompartment</h3></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{WithinCompartment <a href="main3.html#1:5.0.4">5.0.4</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+int WithinCompartment( int i, int j, int k)
+{
+  return (0 &lt;= i) &amp;&amp; (i &lt; iSize ) &amp;&amp;
+         (0 &lt;= j) &amp;&amp; (i &lt; jSize ) &amp;&amp;
+         (0 &lt;= k) &amp;&amp; (i &lt; kSize )     ;
+}
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:5">5</a></p>
+</div>
+</div>
+<a name="1:5.1"><div class="section"><h2>5.1. Conversion between cell index and coordinates.</h2></a>
+<p>The following functions convert between the index of a cell and its coordinates.
+</p>
+
+</div>
+<a name="1:5.1.1"><div class="section"><h3>5.1.1. main program inits</h3></a>
+<p>This initialises the mapping between multidimensional array
+representation of the compartment and the one-dim index representation.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{main program inits <a href="main3.html#1:5.1.1">5.1.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+    MatMappingInitialization(MapVM);
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+</div>
+<a name="1:5.1.1.1"><div class="section"><h4>5.1.1.1. MatMappingInitialization</h4></a>
+<p>We initialise the 3D <code>MapVW</code> array to hold the index of every cell.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{MatMappingInitialization <a href="main3.html#1:5.1.1.1">5.1.1.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+void MatMappingInitialization(int (&amp;MapVM)[iSize][jSize][kSize]){
+    
+    int index=0;
+    for (int i=0; i&lt;iSize; i++) {
+        for (int j=0; j&lt;jSize; j++) {
+            for (int k=0; k&lt;kSize; k++) {
+                MapVM[i][j][k] = index;
+                index++;
+            }
+        }
+    }
+}
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:5">5</a></p>
+</div>
+</div>
+<a name="1:5.1.1.2"><div class="section"><h4>5.1.1.2. MatToVet</h4></a>
+<p>To get the index of a cell we simply return that entry.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{MatToVet <a href="main3.html#1:5.1.1.2">5.1.1.2</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+int MatToVet(const int ik, const int jk, const int kk)
+//This one is now obsolete: I can directly call the MapVM with the desired index.
+{
+  return MapVM[ik][jk][kk];
+}
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:5">5</a></p>
+</div>
+</div>
+<a name="1:5.1.2"><div class="section"><h3>5.1.2. VetToMat</h3></a>
+<p>To get the coordinates of a certain index we loop over all of 
+<code>VetToMat</code> to find the entry that is equal to the one needed.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{VetToMat <a href="main3.html#1:5.1.2">5.1.2</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+int VetToMat(const int valueFromVector, const int ZeroOneorTwo)
+{
+    int m=0;
+    for (int i=0; i&lt;iSize; i++) {
+        for (int j=0; j&lt;jSize; j++) {
+            for (int k=0; k&lt;kSize; k++) {
+	      if ( MapVM[i][j][k] == valueFromVector ) {
+
+                if ( ZeroOneorTwo == 0 ) {
+                  m=i;
+                } else if (ZeroOneorTwo==1) {
+                  m=j;
+                } else {
+                  m=k;
+                }
+              }
+            }
+        }
+    }
+    
+    return m;
+ }
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:5">5</a></p>
+</div>
+</div>
+<a name="1:6"><div class="section"><h1>6. Fitness and replacement</h1></a>
+</div>
+<a name="1:6.1"><div class="section"><h2>6.1. Choose *reproducer* according to fitness</h2></a>
+<p>Choosing the reproducing cell is done in the function <code>ChooseAnElement</code>.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{Choose *reproducer* according to fitness <a href="main3.html#1:6.1">6.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+int reproducer = ChooseAnElement( MatrixState, R);
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:2.1.2">2.1.2</a></p>
+</div>
+</div>
+<a name="1:6.1.1"><div class="section"><h3>6.1.1. ChooseAnElement</h3></a>
+<p>This function calculates the fitness of each cell in the 
+compartment, and then choses a cell to reproduce by fitness.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{ChooseAnElement <a href="main3.html#1:6.1.1">6.1.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+int ChooseAnElement(const bool StateArray[iSize][jSize][kSize], const int R)
+{
+<span class="nocode pln">  {ChooseAnElement: initialise fitness array (MatrixFitness), <a href="main3.html#1:6.1.1.1">6.1.1.1</a>}</span>
+<span class="nocode pln">  {Calculate fitness, <a href="main3.html#1:6.1.1.2">6.1.1.2</a>}</span>
+<span class="nocode pln">  {Choose random cell, <a href="main3.html#1:6.1.1.9">6.1.1.9</a>}</span>
+}
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:5">5</a></p>
+</div>
+</div>
+<a name="1:6.1.1.1"><div class="section"><h4>6.1.1.1. ChooseAnElement: initialise fitness array (MatrixFitness)</h4></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{ChooseAnElement: initialise fitness array (MatrixFitness) <a href="main3.html#1:6.1.1.1">6.1.1.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+    //**************** Initialise Fitness Array ********************************
+    double MatrixFitness[iSize][jSize][kSize] = {{{ 0 }}}; 
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.1.1">6.1.1</a></p>
+</div>
+</div>
+<a name="1:6.1.1.2"><div class="section"><h4>6.1.1.2. Calculate fitness</h4></a>
+<p>There are two separate models to calculate fitness
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{Calculate fitness <a href="main3.html#1:6.1.1.2">6.1.1.2</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+#ifdef CUMULATIVE
+<span class="nocode pln">  {Calculate fitness cumulative, <a href="main3.html#1:6.1.1.3">6.1.1.3</a>}</span>
+#else
+<span class="nocode pln">  {Calculate fitness non cumulative, <a href="main3.html#1:6.1.1.4">6.1.1.4</a>}</span>
+#endif
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.1.1">6.1.1</a></p>
+</div>
+</div>
+<a name="1:6.1.1.3"><div class="section"><h4>6.1.1.3. Calculate fitness cumulative</h4></a>
+<p>In the cumulative model, with <span class="math">n</span> neighbours that are of type 1,
+the fitness of a type 1 cell is <span class="math">1+n b - c</span>, and of a type 0 cell
+<span class="math">1+n b</span>. Thus we calculate fitness in the following way:
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{Calculate fitness cumulative <a href="main3.html#1:6.1.1.3">6.1.1.3</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+<span class="nocode pln">{set fitness to 1, <a href="main3.html#1:6.1.1.5">6.1.1.5</a>}</span>
+<span class="nocode pln">{for every cell of type 1 add b to all neighbours, <a href="main3.html#1:6.1.1.6">6.1.1.6</a>}</span>
+<span class="nocode pln">{subtract c from every cell of type 1, <a href="main3.html#1:6.1.1.8">6.1.1.8</a>}</span>
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.1.1.2">6.1.1.2</a></p>
+</div>
+</div>
+<a name="1:6.1.1.4"><div class="section"><h4>6.1.1.4. Calculate fitness non cumulative</h4></a>
+<p>In the cumulative model, the difference is simply that
+if there is any neighbour of type 1, benefit is <span class="math">b</span>, otherwise
+0.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{Calculate fitness non cumulative <a href="main3.html#1:6.1.1.4">6.1.1.4</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+<span class="nocode pln">{set fitness to 1, <a href="main3.html#1:6.1.1.5">6.1.1.5</a>}</span>
+<span class="nocode pln">{for every cell of type 1 set all neighbours to 1+b, <a href="main3.html#1:6.1.1.7">6.1.1.7</a>}</span>
+<span class="nocode pln">{subtract c from every cell of type 1, <a href="main3.html#1:6.1.1.8">6.1.1.8</a>}</span>
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.1.1.2">6.1.1.2</a></p>
+</div>
+</div>
+<a name="1:6.1.1.5"><div class="section"><h4>6.1.1.5. set fitness to 1</h4></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{set fitness to 1 <a href="main3.html#1:6.1.1.5">6.1.1.5</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+    for (int i=0; i&lt;iSize; i++){
+        for (int j=0; j&lt;jSize; j++) {
+            for (int k=0; k&lt;kSize; k++) {
+                MatrixFitness[i][j][k] = 1;
+            }
+        }
+    }
+</pre>
+
+
+<p class="seealso">Used in sections <a href="main3.html#1:6.1.1.3">6.1.1.3</a> and <a href="main3.html#1:6.1.1.4">6.1.1.4</a></p>
+</div>
+</div>
+<a name="1:6.1.1.6"><div class="section"><h4>6.1.1.6. for every cell of type 1 add b to all neighbours</h4></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{for every cell of type 1 add b to all neighbours <a href="main3.html#1:6.1.1.6">6.1.1.6</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+for (int i=0; i&lt;iSize; i++) {
+  for (int j=0; j&lt;jSize; j++) {
+    for (int k=0; k&lt;kSize; k++) {             // loop over compartment
+      if (StateArray[i][j][k] == 1 ) {        // if cell is mutant
+        for (int m = -R; m &lt;= R ; m++) {      
+          for (int l = -R ; l &lt;= R ; l++) {
+            for (int n= -R; n &lt;= R ; n++) {   // loop over R distance neighbours
+              if (  WithinCompartment( i+m, j+l, k+n) )
+                {
+                  MatrixFitness[i+m][j+l][k+n] += b ; // was * StateArray[i][j][k], but we know it is 1.
+                }
+            }
+          }
+        }
+      }
+    }
+  }
+ }
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.1.1.3">6.1.1.3</a></p>
+</div>
+</div>
+<a name="1:6.1.1.7"><div class="section"><h4>6.1.1.7. for every cell of type 1 set all neighbours to 1+b</h4></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{for every cell of type 1 set all neighbours to 1+b <a href="main3.html#1:6.1.1.7">6.1.1.7</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+for (int i=0; i&lt;iSize; i++) {
+  for (int j=0; j&lt;jSize; j++) {
+    for (int k=0; k&lt;kSize; k++) {
+      if ( StateArray[i][j][k] == 1 ) {
+        for (int m = -R; m &lt;= R ; m++) {
+          for (int l = -R ; l &lt;= R ; l++) {
+            for (int n = -R; n &lt;= R; n++) {
+              if ( WithinCompartment(i+m, j+l, k+n) )
+                {
+                  MatrixFitness[i+m][j+l][k+n] = 1+b; // This was b, but I think it should be 1+b 
+                }
+            }
+          }
+        }
+      }
+    }
+  }
+ }
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.1.1.4">6.1.1.4</a></p>
+</div>
+</div>
+<a name="1:6.1.1.8"><div class="section"><h4>6.1.1.8. subtract c from every cell of type 1</h4></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{subtract c from every cell of type 1 <a href="main3.html#1:6.1.1.8">6.1.1.8</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+ for (int i=0; i&lt;iSize; i++){
+        for (int j=0; j&lt;jSize; j++) {
+            for (int k=0; k&lt;kSize; k++) {
+                if (StateArray[i][j][k]==1) {
+                    MatrixFitness[i][j][k] += (-c) ; // was * StateArray[i][j][k], but we know it is 1.
+                }
+            }
+        }
+    }
+</pre>
+
+
+<p class="seealso">Used in sections <a href="main3.html#1:6.1.1.3">6.1.1.3</a> and <a href="main3.html#1:6.1.1.4">6.1.1.4</a></p>
+</div>
+</div>
+<a name="1:6.1.1.9"><div class="section"><h4>6.1.1.9. Choose random cell</h4></a>
+<p>First, calculate non-normalised CDF for the fitness of all cells in
+compartment. 
+Then sample 1 of them using this CDF.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{Choose random cell <a href="main3.html#1:6.1.1.9">6.1.1.9</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+double FitnessArray[PopSize] = {0};
+<span class="nocode pln">{transform fitness matrix to fitness array, <a href="main3.html#1:6.1.1.9.1">6.1.1.9.1</a>}</span>
+<span class="nocode pln">{calculate (non normalised) CDF of fitness array, <a href="main3.html#1:6.1.1.9.2">6.1.1.9.2</a>}</span>
+<span class="nocode pln">{sample 1 random cell using CDF, <a href="main3.html#1:6.1.1.9.3">6.1.1.9.3</a>}</span>
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.1.1">6.1.1</a></p>
+</div>
+</div>
+<a name="1:6.1.1.9.1"><div class="section"><h5>6.1.1.9.1. transform fitness matrix to fitness array</h5></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{transform fitness matrix to fitness array <a href="main3.html#1:6.1.1.9.1">6.1.1.9.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+    //**************** Transforming Matrix Fitness to Array Fitness*************
+    int counter=0;
+    for (int i=0; i&lt;iSize; i++) {
+        for (int j=0; j&lt;jSize; j++) {
+            for (int k=0; k&lt;kSize; k++) {
+                FitnessArray [counter] = MatrixFitness[i][j][k];
+                counter++;
+            }
+
+        }
+    }
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.1.1.9">6.1.1.9</a></p>
+</div>
+</div>
+<a name="1:6.1.1.9.2"><div class="section"><h5>6.1.1.9.2. calculate (non normalised) CDF of fitness array</h5></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{calculate (non normalised) CDF of fitness array <a href="main3.html#1:6.1.1.9.2">6.1.1.9.2</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+    //******************** Cumulative vector **************************
+    double FitnessCDF[PopSize]={0};
+    for (int i=0; i&lt;PopSize; i++){ FitnessCDF[i] =  FitnessArray[i];}
+    for (int i=1; i&lt;PopSize; i++){ FitnessCDF[i] += FitnessCDF[i-1];}
+
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.1.1.9">6.1.1.9</a></p>
+</div>
+</div>
+<a name="1:6.1.1.9.3"><div class="section"><h5>6.1.1.9.3. sample 1 random cell using CDF</h5></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{sample 1 random cell using CDF <a href="main3.html#1:6.1.1.9.3">6.1.1.9.3</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+    //******************** Return an Element weighted sampled **************************
+    return rnd::sample_1( FitnessCDF, PopSize);
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.1.1.9">6.1.1.9</a></p>
+</div>
+<p><code>rnd</code> is defined in <code>random.h</code>
+</p>
+
+</div>
+<a name="1:6.1.1.9.4"><div class="section"><h5>6.1.1.9.4. includes +=</h5></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{includes <a href="main3.html#1:3">3</a>} +=</span>
+<pre class="prettyprint lang-Dockerfile">
+#include "random.h" // for rnd::sample_1
+</pre>
+<p class="seealso">Added to in sections <a href="main3.html#1:3.2.4.0.1">3.2.4.0.1</a>, <a href="main3.html#1:5.0.1.0.1">5.0.1.0.1</a>, <a href="main3.html#1:6.3.1.1.1">6.3.1.1.1</a>, <a href="main3.html#1:6.3.1.2.1">6.3.1.2.1</a> and <a href="main3.html#1:6.3.1.4.1">6.3.1.4.1</a></p>
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+</div>
+<a name="1:6.2"><div class="section"><h2>6.2. Choose random cell within range L *to be replaced*</h2></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{Choose random cell within range L *to be replaced* <a href="main3.html#1:6.2">6.2</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+int to_be_replaced = NeighbourWithinL( reproducer ) ;
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:2.1.2">2.1.2</a></p>
+</div>
+</div>
+<a name="1:6.2.1"><div class="section"><h3>6.2.1. NeighbourWithinL</h3></a>
+<p>Find a neighbour in radius L from focal,
+return its index.
+This is done by choosing random neighbour, and checking
+if it fulfils some conditions.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{NeighbourWithinL <a href="main3.html#1:6.2.1">6.2.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+int NeighbourWithinL(const int addresoffocal)
+{
+    int a[3]={0,0,0};
+    int focal[3] = { VetToMat(addresoffocal,0),
+                     VetToMat(addresoffocal,1),
+                     VetToMat(addresoffocal,0) } ;
+
+    do{
+        a[0] = focal[0] - L + IntegerRandom(2*L+1);
+        a[1] = focal[1] - L + IntegerRandom(2*L+1);
+        a[2] = focal[2] - L + IntegerRandom(2*L+1);
+    } while ( ( (a[0] == focal[0]) &amp;&amp;   // continue while:
+                (a[1] == focal[1]) &amp;&amp;
+                (a[2] == focal[2])    ) // same location as focal
+              ||                        
+              ! WithinCompartment( a[0], a[1], a[2] ) ) ; // not in compartment
+    
+    return MatToVet(a[0], a[1], a[2]); 
+}
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:5">5</a></p>
+</div>
+</div>
+<a name="1:6.3"><div class="section"><h2>6.3. Find cell of the same type as *to be replaced*, having maximum neigbours of same type as the *reproducer*, and replace it instead</h2></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{Find cell of the same type as *to be replaced*, having maximum neigbours of same type as the *reproducer*, and replace it instead <a href="main3.html#1:6.3">6.3</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+  Replacement( MatrixState, reproducer, to_be_replaced);
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:2.1.2">2.1.2</a></p>
+</div>
+</div>
+<a name="1:6.3.1"><div class="section"><h3>6.3.1. Replacement</h3></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{Replacement <a href="main3.html#1:6.3.1">6.3.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+void Replacement( bool (&amp;MatrixSt)[iSize][jSize][kSize], 
+                  const int focal_Vet, const int replace_Vet) 
+{
+  //    call_count++; I moved this out
+    
+    // If the focal and replace are different, do the replacement
+  int focal[3] = { VetToMat( focal_Vet  , 0),
+                   VetToMat( focal_Vet  , 1),
+                   VetToMat( focal_Vet  , 2) } ;
+  int replace[3] = { VetToMat( replace_Vet, 0),
+                     VetToMat( replace_Vet, 1),
+                     VetToMat( replace_Vet, 2) } ;
+  bool focal_type =   (MatrixSt)[ focal[0]   ][ focal[1]   ][ focal[2] ] ;
+  bool replace_type = (MatrixSt)[ replace[0] ][ replace[1] ][ replace[2] ] ;
+  
+  if( focal_type != replace_type) {
+        if ( focal_type == 1) {
+          
+<span class="nocode pln">          {Calculate number of immediate neighbours of type 1 for each cell of type 0, <a href="main3.html#1:6.3.1.1">6.3.1.1</a>}</span>
+<span class="nocode pln">          {Find the cells with the maximal number of neighbours of type 1, <a href="main3.html#1:6.3.1.3">6.3.1.3</a>}</span>
+          
+           // choose one of them, those with the maximal #of neighbours diff from them.
+           int choo= VectorAddresMaximum[ IntegerRandom(static_cast&lt;int&gt;(VectorAddresMaximum.size()))];
+
+           // Finally, set that one to 1, we replicated.
+           MatrixSt[VetToMat(choo, 0)][VetToMat(choo, 1)][VetToMat(choo, 2)]= 1 ;
+            
+           // Erase the vectors. ### why is this needed? Won't they be erased on their own?
+           VectorZeroAddress.erase (VectorZeroAddress.begin(), VectorZeroAddress.begin()+VectorZeroAddress.size());
+           VectorNOnes.erase (VectorNOnes.begin(), VectorNOnes.begin()+VectorNOnes.size());
+           VectorAddresMaximum.erase (VectorAddresMaximum.begin(), VectorAddresMaximum.begin()+VectorAddresMaximum.size());
+        } else { // if the focal isn't 1, i.e. if the focal is 0.
+<span class="nocode pln">          {Calculate number of immediate neighbours of type 0 for each cell of type 1, <a href="main3.html#1:6.3.1.2">6.3.1.2</a>}</span>
+<span class="nocode pln">          {Find the cells with the maximal number of neighbours of type 0, <a href="main3.html#1:6.3.1.4">6.3.1.4</a>}</span>
+
+          // chose a random maximal cell
+          int choo=VectorAddresMaximum[IntegerRandom(static_cast&lt;int&gt;(VectorAddresMaximum.size()))];
+
+          // set it to 0, i.e. to the value of the focal
+            MatrixSt[VetToMat(choo, 0)][VetToMat(choo, 1)][VetToMat(choo, 2)]= 0 ;
+            
+            
+            VectorOneAddress.erase (VectorOneAddress.begin(), VectorOneAddress.begin()+VectorOneAddress.size());
+            VectorNZeros.erase (VectorNZeros.begin(), VectorNZeros.begin()+VectorNZeros.size());
+            VectorAddresMaximum.erase (VectorAddresMaximum.begin(), VectorAddresMaximum.begin()+VectorAddresMaximum.size());
+            
+            
+            
+        }
+        
+    }
+    
+}
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:5">5</a></p>
+</div>
+</div>
+<a name="1:6.3.1.1"><div class="section"><h4>6.3.1.1. Calculate number of immediate neighbours of type 1 for each cell of type 0</h4></a>
+<p><code>counter2</code> records the number of neighbours of type 1.
+<code>VectorZeroAddress</code> records location of each cell that has more than
+one neighbour of type 1.
+<code>VectorNOnes</code> records the number of such neighbours.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{Calculate number of immediate neighbours of type 1 for each cell of type 0 <a href="main3.html#1:6.3.1.1">6.3.1.1</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+vector&lt;int&gt; VectorZeroAddress;
+vector&lt;int&gt; VectorNOnes;
+
+// Find places in MatrixSt that are 0 and have 
+// neighbours that are 1.
+// Store the place and how many neighbours are 1 in VectorNOnes.
+// neighbourhood is -1, 0, +1.
+for (int i=0; i&lt;iSize; i++) {
+  for (int j=0; j&lt;jSize; j++) {
+    for (int k=0; k&lt;kSize; k++){
+      if (MatrixSt[i][j][k] == 0 ) { // cell is 0
+        int counter2=0;
+        for (int ik= i-1; ik&lt;= i+1; ik++) { 
+          for (int jk= j-1; jk&lt;= j+1; jk++) {
+            for(int kk= k-1; kk &lt;= k+1; kk++){
+              if( WithinCompartment(ik, jk, kk) &amp;&amp; 
+                  MatrixSt[ik][jk][kk] == 1         )
+                counter2++;
+            } // for kk
+          } // for jk
+        } // for ik
+        if (counter2 &gt; 0) {
+          VectorZeroAddress.push_back( MatToVet( i, j, k) ); // record address of 0 cell
+          VectorNOnes.push_back( counter2 ); // record number of 1
+        }
+      } // if MatrixSt
+    } // for k
+  } // for j
+ } // for i
+//############################
+
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.3.1">6.3.1</a></p>
+</div>
+<p>Since <code>VectorNOnes</code> and <code>VectorZeroAddress</code> are <code>vector&lt;int&gt;</code>, we need
+</p>
+
+</div>
+<a name="1:6.3.1.1.1"><div class="section"><h5>6.3.1.1.1. includes +=</h5></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{includes <a href="main3.html#1:3">3</a>} +=</span>
+<pre class="prettyprint lang-Dockerfile">
+#include &lt;vector&gt;
+</pre>
+<p class="seealso">Added to in sections <a href="main3.html#1:3.2.4.0.1">3.2.4.0.1</a>, <a href="main3.html#1:5.0.1.0.1">5.0.1.0.1</a>, <a href="main3.html#1:6.1.1.9.4">6.1.1.9.4</a>, <a href="main3.html#1:6.3.1.2.1">6.3.1.2.1</a> and <a href="main3.html#1:6.3.1.4.1">6.3.1.4.1</a></p>
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+</div>
+<a name="1:6.3.1.2"><div class="section"><h4>6.3.1.2. Calculate number of immediate neighbours of type 0 for each cell of type 1</h4></a>
+<p><code>counter2</code> records the number of neighbours of type 0.
+<code>VectorZeroAddress</code> records location of each cell that has more than
+one neighbour of type 0.
+<code>VectorNOnes</code> records the number of such neighbours.
+</p>
+
+<div class="codeblock">
+<span class="codeblock_name">{Calculate number of immediate neighbours of type 0 for each cell of type 1 <a href="main3.html#1:6.3.1.2">6.3.1.2</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+vector&lt;int&gt; VectorOneAddress;
+vector&lt;int&gt; VectorNZeros;
+
+// Find places in MatrixSt that are 1 and have 
+// neighbours that are 0.
+// Store the place and how many neighbours are 0 in VectorNZeros.
+// neighbourhood is -1, 0, +1.
+
+for (int i=0; i&lt;iSize; i++) {
+  for (int j=0; j&lt;jSize; j++) {
+    for (int k=0; k&lt;kSize; k++){
+      if( MatrixSt[i][j][k]==1 ) { // cell is 1
+        int counter2=0;
+        for (int ik=-1+i; ik&lt;2+i; ik++) {
+          for (int jk=-1+j; jk&lt;2+j; jk++) {
+            for(int kk=-1+k; kk&lt;2+k; kk++){
+              if ( WithinCompartment(ik, jk, kk) &amp;&amp; 
+                   MatrixSt[ik][jk][kk] == 0        )
+                counter2++;
+            }
+          }
+        }
+        if (counter2 !=0) {
+          VectorOneAddress.push_back( MatToVet( i, j, k)); // record address of 1 cell
+          VectorNZeros.push_back( counter2 ); // record number of 0
+        }
+      }
+    }
+  }
+ }
+//############################
+
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.3.1">6.3.1</a></p>
+</div>
+<p>Since <code>VectorNZeros</code> and <code>VectorOneAddress</code> are <code>vector&lt;int&gt;</code>, we need
+</p>
+
+</div>
+<a name="1:6.3.1.2.1"><div class="section"><h5>6.3.1.2.1. includes +=</h5></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{includes <a href="main3.html#1:3">3</a>} +=</span>
+<pre class="prettyprint lang-Dockerfile">
+#include &lt;vector&gt;
+</pre>
+<p class="seealso">Added to in sections <a href="main3.html#1:3.2.4.0.1">3.2.4.0.1</a>, <a href="main3.html#1:5.0.1.0.1">5.0.1.0.1</a>, <a href="main3.html#1:6.1.1.9.4">6.1.1.9.4</a>, <a href="main3.html#1:6.3.1.1.1">6.3.1.1.1</a> and <a href="main3.html#1:6.3.1.4.1">6.3.1.4.1</a></p>
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+</div>
+<a name="1:6.3.1.3"><div class="section"><h4>6.3.1.3. Find the cells with the maximal number of neighbours of type 1</h4></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{Find the cells with the maximal number of neighbours of type 1 <a href="main3.html#1:6.3.1.3">6.3.1.3</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+vector&lt;int&gt; VectorAddresMaximum;
+
+// Among VectorNOnes, find those that are equal to the maximum,
+// and put those on VectorAddresMaximum.
+// Notice that max_element is computed every step of the loop,
+// though it could be computed just once.
+for (unsigned int i=0; i &lt; (VectorZeroAddress.size()); i++) {
+  if ( VectorNOnes[i] == *max_element( begin( VectorNOnes), end( VectorNOnes) ) ) {
+    VectorAddresMaximum.push_back( VectorZeroAddress[ i]);
+  }
+}
+            
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.3.1">6.3.1</a></p>
+</div>
+</div>
+<a name="1:6.3.1.4"><div class="section"><h4>6.3.1.4. Find the cells with the maximal number of neighbours of type 0</h4></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{Find the cells with the maximal number of neighbours of type 0 <a href="main3.html#1:6.3.1.4">6.3.1.4</a>}</span>
+<pre class="prettyprint lang-Dockerfile">
+vector&lt;int&gt; VectorAddresMaximum;
+
+// Among VectorNZeros, find those that are equal to the maximum,
+// and put those on VectorAddresMaximum.
+// Notice that max_element is computed every step of the loop,
+// though it could be computed just once.
+
+for (unsigned int i=0; i&lt; (VectorOneAddress.size()); i++) {
+  if( VectorNZeros[i] == *max_element( begin(VectorNZeros), end(VectorNZeros) )) {
+    VectorAddresMaximum.push_back( VectorOneAddress[ i] );
+  }
+}
+            
+</pre>
+
+
+<p class="seealso">Used in section <a href="main3.html#1:6.3.1">6.3.1</a></p>
+</div>
+<p>Since <code>VectorAddresMaximum</code>is <code>vector&lt;int&gt;</code>, we need <code>&lt;vector&gt;</code>,
+and for <code>max_element</code> we need <code>&lt;algorithm&gt;</code>
+</p>
+
+</div>
+<a name="1:6.3.1.4.1"><div class="section"><h5>6.3.1.4.1. includes +=</h5></a>
+
+<div class="codeblock">
+<span class="codeblock_name">{includes <a href="main3.html#1:3">3</a>} +=</span>
+<pre class="prettyprint lang-Dockerfile">
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+</pre>
+<p class="seealso">Added to in sections <a href="main3.html#1:3.2.4.0.1">3.2.4.0.1</a>, <a href="main3.html#1:5.0.1.0.1">5.0.1.0.1</a>, <a href="main3.html#1:6.1.1.9.4">6.1.1.9.4</a>, <a href="main3.html#1:6.3.1.1.1">6.3.1.1.1</a> and <a href="main3.html#1:6.3.1.2.1">6.3.1.2.1</a></p>
+
+<p class="seealso">Used in section <a href="main3.html#1:2.2.1">2.2.1</a></p>
+</div>
+
+</div>
+</div>
+</div>
+<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/katex.min.css">
+<script src="http://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.3.0/katex.min.js"></script>
+<script>
+var mathDivs = document.getElementsByClassName("math")
+for (var i = 0; i < mathDivs.length; i++) {
+    var el = mathDivs[i];
+    var texTxt = el.textContent;
+    try {
+        var displayMode = false;
+        if (el.tagName == 'DIV') {
+            displayMode = true;
+        }
+        katex.render(texTxt, el, {displayMode: displayMode});
+    }
+    catch(err) {
+        el.innerHTML = "<span class='err'>"+err+"</span>";
+    }
+}
+</script>
+</body>

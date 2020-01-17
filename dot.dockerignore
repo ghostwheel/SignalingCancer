@@ -1,0 +1,8 @@
+# dot.dockerignore
+*
+!main3.md
+!main2.md
+!random.cpp
+!random.h
+!Literate
+
